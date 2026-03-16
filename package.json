@@ -1,0 +1,30 @@
+{
+    "name": "dev-tinder",
+    "version": "1.0.0",
+    "description": "A platform to match developers based on tech-stack compatibility",
+    "keywords": [
+        "NodeJS",
+        "Javascript",
+        "ReactJS"
+    ],
+    "homepage": "https://github.com/Prajwal-kh/Dev_Tinder_App#readme",
+    "bugs": {
+        "url": "https://github.com/Prajwal-kh/Dev_Tinder_App/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Prajwal-kh/Dev_Tinder_App.git"
+    },
+    "license": "ISC",
+    "author": "Prajwal Kharode",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "nodemon src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "express": "^5.2.1"
+    }
+}
