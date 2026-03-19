@@ -15,10 +15,13 @@ app.post("/admin/deleteUser", (req, res) => {
 
 // For the below request handler middleware will not be called as middleware supports only /admin routes
 app.get("/user/userDetails", userAuthFunction, (req, res) => {
-    throw new Error(
-        "Thrown new error to check Error handler middelware's functionality",
-    );
-    res.send("User details");
+    // Its always better to handle exceptions in each routes as well rather than handlling it globally using Error handler.
+    try {
+        throw new Error("Explicitely thrown Error");
+        res.send("User details");
+    } catch (error) {
+        res.status(500).send("Error in /userDetails route " + error);
+    }
 });
 
 // No need to check user validation while user logging in so no need to pass middleware here for this route.
