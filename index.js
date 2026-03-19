@@ -5,6 +5,7 @@ const app = express();
 
 // Request handlers:
 app.get("/users", (req, res) => {
+    console.log(req.query);
     res.send([
         {
             name: "User1",
