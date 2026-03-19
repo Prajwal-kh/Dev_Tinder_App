@@ -13,8 +13,14 @@ app.get("/users", (req, res) => {
     ]);
 });
 
+// Dynamic routes:
+app.get("/users/:userid", (req, res) => {
+    console.log(req.params);
+    res.send(`fetched ${req.params.userid} user details successfully`);
+});
+
 app.post("/user", (req, res) => {
-    console.log(req);
+    console.log(req.body);
     res.send(req.body?.name);
 });
 
