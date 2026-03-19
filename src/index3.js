@@ -1,5 +1,5 @@
 import express from "express";
-import { adminAuthFunction } from "./middlewares/auth.js";
+import { adminAuthFunction, userAuthFunction } from "./middlewares/auth.js";
 
 const app = express();
 
@@ -14,8 +14,13 @@ app.post("/admin/deleteUser", (req, res) => {
 });
 
 // For the below request handler middleware will not be called as middleware supports only /admin routes
-app.get("/user", (req, res) => {
+app.get("/user/userDetails", userAuthFunction, (req, res) => {
     res.send("User details");
+});
+
+// No need to check user validation while user logging in so no need to pass middleware here for this route.
+app.post("/user/login", (req, res) => {
+    res.send("User logged in successfully");
 });
 
 app.listen(3002, () => {
