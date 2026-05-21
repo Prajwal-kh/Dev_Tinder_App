@@ -12,6 +12,9 @@ await connectDB();
 // This will put it into the the req.body and give us access to read the data in JS object
 app.use(express.json());
 
+// Data sanitization and validation should be done in the schema level as much as possible to maintain the data integrity and to
+// avoid writing the same code again and again in each route handler.
+// We can also write custom validation functions in the schema to validate the data according to our requirements.
 app.post("/signup", async (req, res) => {
     const user = new User(req.body);
     try {
@@ -63,13 +66,31 @@ app.delete("/user/:id", async (req, res) => {
     }
 });
 
-app.patch("/user", async (req, res) => {
+app.patch("/user/:userId", async (req, res) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.params?.userId;
         const data = req.body;
+
+        const AllOWED_UPDATES = [
+            "photoUrl",
+            "about",
+            "gender",
+            "age",
+            "skills",
+            "firstName",
+            "lastName",
+        ];
+        const isUpdateAllowed = Object.keys(data).every((k) =>
+            AllOWED_UPDATES.includes(k),
+        );
+        if (!isUpdateAllowed) {
+            throw new Error("Update not allowed");
+        }
+
         // findByIdAndUpdate method works similar to findOneAndUpdate() if we are updating user by id
         const updatedUser = await User.findByIdAndUpdate(userId, data, {
             returnDocument: "after",
+            runValidators: true, // validate schema data while updating the doc
         });
         console.log("user new details: ", updatedUser);
         if (!updatedUser) {

@@ -3,6 +3,8 @@ import express from "express";
 // creating a new expres js application using express in other words new web server
 const app = express();
 
+app.use(express.json()); // Use this middleware so that req.body will be parsed and will not be undefined.
+
 // Request handlers:
 app.get("/users", (req, res) => {
     console.log(req.query);
