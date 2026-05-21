@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+import validator from "validator";
 
 const userSchema = new Schema(
     {
@@ -16,10 +17,20 @@ const userSchema = new Schema(
             unique: true,
             lowercase: true,
             trim: true,
+            validate(value) {
+                if (!validator.isEmail(value)) {
+                    throw new Error("Email is not valid");
+                }
+            },
         },
         password: {
             type: String,
             required: true,
+            validate(value) {
+                if (!validator.isStrongPassword(value)) {
+                    throw new Error("Password is not strong enough");
+                }
+            },
         },
         age: {
             type: Number,
@@ -38,6 +49,11 @@ const userSchema = new Schema(
             type: String,
             default:
                 "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png",
+            validate(value) {
+                if (!validator.isURL(value)) {
+                    throw new Error("Photo URL is not valid");
+                }
+            },
         },
         about: {
             type: String,

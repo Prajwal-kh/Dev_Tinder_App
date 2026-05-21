@@ -29,13 +29,16 @@ We started by learning Express.js fundamentals:
 
 - **File**: `src/models/user.js`
 - Created MongoDB schema with fields: `firstName`, `lastName`, `email`, `password`, `age`, `gender`, `photoUrl`, `about`, `skills`
+- **Library**: Using `validator` npm package for robust data validation
 - Implemented schema-level validation:
-    - Email: unique, lowercase, trimmed
+    - Email: unique, lowercase, trimmed, validated using `validator.isEmail()`
+    - Password: required, validated using `validator.isStrongPassword()` (enforces strong password requirements)
     - FirstName: minimum length 8, maximum 20
     - Age: minimum 18
     - Gender: custom validator (only "male", "female", "others" allowed)
+    - PhotoUrl: validated using `validator.isURL()` to ensure valid URL format, default image provided
+    - About: default value provided
     - Skills: maximum 5 skills per user
-    - PhotoUrl & About: default values provided
     - Timestamps: auto-created for tracking creation/update time
 
 ### Step 3: Authentication Middleware
@@ -90,6 +93,7 @@ We started by learning Express.js fundamentals:
 - **Framework**: Express.js
 - **Database**: MongoDB
 - **ODM**: Mongoose
+- **Validation**: Validator.js (for email, URL, and password strength validation)
 - **Port**: 7000
 
 ## Key Concepts Implemented
@@ -103,6 +107,10 @@ We started by learning Express.js fundamentals:
 7. **Data Sanitization**: Schema-level validation ensures data integrity
     - All required fields are validated before saving to database
     - Custom validators prevent invalid data (e.g., gender validation, skills limit)
+    - Third-party validation library (Validator.js) for industry-standard checks:
+        - Email format validation with `isEmail()`
+        - Strong password enforcement with `isStrongPassword()`
+        - URL format validation with `isURL()` for photo uploads
     - This approach avoids repeating validation logic in every route handler
 8. **API-Level Data Sanitization**: Only allows updates to whitelisted fields
     - Defined `ALLOWED_UPDATES` array: `photoUrl`, `about`, `gender`, `age`, `skills`, `firstName`, `lastName`
