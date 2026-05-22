@@ -4,6 +4,7 @@ import User from "./models/user.js";
 import validateSignupData from "./utils/validation.js";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
 
 const app = express();
 const port = "7000";
@@ -55,9 +56,15 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("Invalid credentials");
         }
         // Create a JWT token
-
+        // We can hide userId and other sensitive data in the token payload and set the secret key which is only known to the server.
+        const token = jwt.sign({ _id: user._id }, "DEVTinderSecretKey$790", {
+            expiresIn: "1h",
+        });
         // Add the token in the cookie and send the response back to the user
-        res.cookie("token", "dummyTokenxyzw1234");
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+        });
         res.status(200).send("Login successful");
     } catch (error) {
         res.status(400).send("Error logging in " + error);
@@ -67,8 +74,19 @@ app.post("/login", async (req, res) => {
 app.get("/profile", async (req, res) => {
     try {
         const cookies = req.cookies; // to read the cookies from the incoming request we need to pass cookie-parser middleware in our app
-        console.log("cookies: ", cookies);
-        res.status(200).send("User profile data");
+        const token = cookies?.token;
+        if (!token) {
+            return res.status(401).send("Unauthorized");
+        }
+        // Verify the JWT token
+        const decodedMessage = jwt.verify(token, "DEVTinderSecretKey$790");
+        const userId = decodedMessage._id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        res.status(200).send(user);
     } catch (error) {
         res.status(400).send("Error fetching user profile data " + error);
     }
