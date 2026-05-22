@@ -3,6 +3,7 @@ import { connectDB } from "./config/database.js";
 import User from "./models/user.js";
 import validateSignupData from "./utils/validation.js";
 import bcrypt from "bcrypt";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = "7000";
@@ -13,6 +14,7 @@ await connectDB();
 // To read the incoming JSON data and convert it into a JS object we need to pass a middleware to all routes
 // This will put it into the the req.body and give us access to read the data in JS object
 app.use(express.json());
+app.use(cookieParser());
 
 // Data sanitization and validation should be done in the schema level as much as possible to maintain the data integrity and to
 // avoid writing the same code again and again in each route handler.
@@ -52,9 +54,23 @@ app.post("/login", async (req, res) => {
         if (!isPasswordMatch) {
             return res.status(401).send("Invalid credentials");
         }
+        // Create a JWT token
+
+        // Add the token in the cookie and send the response back to the user
+        res.cookie("token", "dummyTokenxyzw1234");
         res.status(200).send("Login successful");
     } catch (error) {
         res.status(400).send("Error logging in " + error);
+    }
+});
+
+app.get("/profile", async (req, res) => {
+    try {
+        const cookies = req.cookies; // to read the cookies from the incoming request we need to pass cookie-parser middleware in our app
+        console.log("cookies: ", cookies);
+        res.status(200).send("User profile data");
+    } catch (error) {
+        res.status(400).send("Error fetching user profile data " + error);
     }
 });
 
