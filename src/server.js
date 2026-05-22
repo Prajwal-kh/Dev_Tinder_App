@@ -1,6 +1,8 @@
 import express from "express";
 import { connectDB } from "./config/database.js";
 import User from "./models/user.js";
+import validateSignupData from "./utils/validation.js";
+import bcrypt from "bcrypt";
 
 const app = express();
 const port = "7000";
@@ -16,12 +18,43 @@ app.use(express.json());
 // avoid writing the same code again and again in each route handler.
 // We can also write custom validation functions in the schema to validate the data according to our requirements.
 app.post("/signup", async (req, res) => {
-    const user = new User(req.body);
     try {
+        // Validation of incoming data
+        validateSignupData(req.body);
+
+        const { firstName, lastName, email, password } = req.body;
+        // Encrypting the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log(hashedPassword);
+
+        // Creating a new instance of user object and saving it into the database
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            password: hashedPassword,
+        });
         await user.save();
         res.status(201).send("User added successfully to db");
     } catch (error) {
         res.status(400).send("Error saving the user into db " + error);
+    }
+});
+
+app.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            return res.status(401).send("Invalid credentials");
+        }
+        res.status(200).send("Login successful");
+    } catch (error) {
+        res.status(400).send("Error logging in " + error);
     }
 });
 
