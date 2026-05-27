@@ -5,6 +5,7 @@ import validateSignupData from "./utils/validation.js";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import { authValidation } from "./middlewares/auth.js";
 
 const app = express();
 const port = "7000";
@@ -51,17 +52,16 @@ app.post("/login", async (req, res) => {
         if (!user) {
             return res.status(404).send("User not found");
         }
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        // We can write the password validation logic in the mongoose schema method to maintain the separation of concerns.
+        const isPasswordMatch = await user.validatePassword(password);
         if (!isPasswordMatch) {
             return res.status(401).send("Invalid credentials");
         }
-        // Create a JWT token
-        // We can hide userId and other sensitive data in the token payload and set the secret key which is only known to the server.
-        const token = jwt.sign({ _id: user._id }, "DEVTinderSecretKey$790", {
-            expiresIn: "1h",
-        });
+        // Its better to offload the jwt token generation logic to mongoose schema
+        const token = await user.getJWT();
         // Add the token in the cookie and send the response back to the user
         res.cookie("token", token, {
+            expires: new Date(Date.now() + 24 * 3600000), // 1 day
             httpOnly: true,
             secure: true,
         });
@@ -71,24 +71,31 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", authValidation, async (req, res) => {
     try {
-        const cookies = req.cookies; // to read the cookies from the incoming request we need to pass cookie-parser middleware in our app
-        const token = cookies?.token;
-        if (!token) {
-            return res.status(401).send("Unauthorized");
-        }
-        // Verify the JWT token
-        const decodedMessage = jwt.verify(token, "DEVTinderSecretKey$790");
-        const userId = decodedMessage._id;
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-
+        const user = req.user; // The user object is attached to the request by the authValidation middleware
         res.status(200).send(user);
     } catch (error) {
         res.status(400).send("Error fetching user profile data " + error);
+    }
+});
+
+app.post("/sendConnectionRequest", authValidation, async (req, res) => {
+    try {
+        const user = req.user; // The user object is attached to the request by the authValidation middleware
+        const { recipientEmail } = req.body;
+        const recipientUser = await User.findOne({ email: recipientEmail });
+        if (!recipientUser) {
+            return res.status(404).send("Recipient user not found");
+        }
+        // Here we can add the logic to send connection request to the recipient user
+        res.status(200).send(
+            user.firstName +
+                " successfully sent connection request to " +
+                recipientUser.firstName,
+        );
+    } catch (error) {
+        res.status(400).send("Error sending connection request " + error);
     }
 });
 

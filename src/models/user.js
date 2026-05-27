@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 import validator from "validator";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
     {
@@ -72,6 +74,19 @@ const userSchema = new Schema(
         timestamps: true,
     },
 );
+
+userSchema.methods.getJWT = async function () {
+    const user = this; // this keyword only works with function keyword and not with arrow function as arrow function does not have its own this context and it will refer to the global object instead of the user document.
+    const token = await jwt.sign({ _id: user._id }, "DEVTinderSecretKey$790", {
+        expiresIn: "1d",
+    });
+    return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordEnteredByUser) {
+    const user = this;
+    return await bcrypt.compare(passwordEnteredByUser, user.password);
+};
 
 const User = mongoose.model("User", userSchema);
 
